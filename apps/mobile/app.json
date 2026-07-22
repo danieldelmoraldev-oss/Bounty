@@ -35,6 +35,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#0A0A0B"
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Bounty usa la cámara para escanear el código QR de un grupo y para la cámara libre en el Modo Fiesta."
+        }
       ]
     ],
     "experiments": {

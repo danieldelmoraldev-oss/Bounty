@@ -46,9 +46,27 @@ base de demo (poblada con `pnpm seed`, datos falsos pero reales en Mongo) o
 contra la base de producción. La app nunca necesita saberlo: solo habla con
 la URL de API que le indique su propio `.env`.
 
+## Despliegue
+
+- **Server → Render**: hay un `render.yaml` (Blueprint) en la raíz. En Render:
+  "New +" → "Blueprint" → conectar el repo de GitHub → Render detecta
+  `render.yaml` solo. Hay que rellenar a mano en el dashboard (quedan fuera
+  del yaml a propósito, son secretos): `MONGODB_URI`, `JWT_SECRET`,
+  `OPENAI_API_KEY`. El servicio usa `DATA_MODE=live` (base `bounty_live`,
+  arranca vacía) y queda en `https://bounty-server.onrender.com`, que ya es
+  la URL que espera `apps/mobile/.env.production`.
+- **Landing → Vercel**: "Add New" → "Project" → importar el repo → en
+  "Root Directory" seleccionar `apps/landing` (Next.js se detecta solo, sin
+  variables de entorno necesarias por ahora).
+- **Importante en MongoDB Atlas**: en "Network Access" hay que permitir
+  `0.0.0.0/0` ("Allow access from anywhere"). Ni el ordenador de desarrollo
+  ni Render tienen una IP fija, así que restringir por IP concreta corta la
+  conexión tarde o temprano.
+
 ## Roadmap
 
 El plan completo por fases vive en las notas del proyecto. Resumen: 0)
-Cimientos (este commit), 1) Identidad y grupos, 2) Temporadas y ranking, 3)
-Motor de retos, 4) Cámara libre y álbum, 5) Economía y tienda, 6) Recaps, 7)
-Preparación de release (EAS build + Play Store).
+Cimientos ✅, 1) Identidad y grupos ✅ (auth sin fricción, crear/unirse a
+grupo por código o QR), 2) Temporadas y ranking, 3) Motor de retos, 4)
+Cámara libre y álbum, 5) Economía y tienda, 6) Recaps, 7) Preparación de
+release (EAS build + Play Store).

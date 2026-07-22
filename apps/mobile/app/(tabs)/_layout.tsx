@@ -1,7 +1,14 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { TabBar, type TabRoute } from "@/components/TabBar";
+import { useAppState } from "@/context/AppState";
 
 export default function TabLayout() {
+  const { status } = useAppState();
+
+  if (status !== "ready") {
+    return <Redirect href="/onboarding" />;
+  }
+
   return (
     <Tabs
       screenOptions={{ headerShown: false }}

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { HealthResponse } from "@bounty/shared";
-import { env } from "../config/env.js";
-import { isDbConnected } from "../config/db.js";
+import { env } from "../config/env.ts";
+import { isDbConnected } from "../config/db.ts";
 
 export const healthRouter = Router();
 
