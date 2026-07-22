@@ -162,13 +162,14 @@ export default function RanksScreen() {
           </View>
         )}
 
-        {history.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>TEMPORADAS ANTERIORES</Text>
-            <View style={styles.card}>
-              {history
-                .filter((s) => s.status === "ended")
-                .map((season) => (
+        {(() => {
+          const endedSeasons = history.filter((s) => s.status === "ended");
+          if (endedSeasons.length === 0) return null;
+          return (
+            <>
+              <Text style={styles.sectionTitle}>TEMPORADAS ANTERIORES</Text>
+              <View style={styles.card}>
+                {endedSeasons.map((season) => (
                   <View key={season.id} style={styles.historyRow}>
                     <Text style={styles.historyName}>{season.name}</Text>
                     <Text style={styles.historyDate}>
@@ -177,9 +178,10 @@ export default function RanksScreen() {
                     </Text>
                   </View>
                 ))}
-            </View>
-          </>
-        )}
+              </View>
+            </>
+          );
+        })()}
       </ScrollView>
     </SafeAreaView>
   );

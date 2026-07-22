@@ -2,18 +2,20 @@ import { useState } from "react";
 import { Share, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import type { GroupDetail } from "@bounty/shared";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { InviteQr } from "@/components/InviteQr";
 import { useAppState } from "@/context/AppState";
 
 export default function CreateGroupScreen() {
-  const { createNewGroup, group } = useAppState();
+  const { createNewGroup, activateGroup } = useAppState();
   const router = useRouter();
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [created, setCreated] = useState(false);
+  const [createdGroup, setCreatedGroup] = useState<GroupDetail | null>(null);
+  const [entering, setEntering] = useState(false);
 
   const canSubmit = name.trim().length >= 2 && !submitting;
 
@@ -22,8 +24,8 @@ export default function CreateGroupScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      await createNewGroup(name.trim());
-      setCreated(true);
+      const detail = await createNewGroup(name.trim());
+      setCreatedGroup(detail);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear el grupo");
     } finally {
@@ -31,21 +33,28 @@ export default function CreateGroupScreen() {
     }
   }
 
-  if (created && group) {
+  async function handleEnter() {
+    if (!createdGroup) return;
+    setEntering(true);
+    await activateGroup(createdGroup);
+    router.replace("/(tabs)");
+  }
+
+  if (createdGroup) {
     return (
       <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
         <View style={styles.content}>
           <Text style={styles.eyebrow}>GRUPO CREADO</Text>
-          <Text style={styles.title}>{group.name}</Text>
+          <Text style={styles.title}>{createdGroup.name}</Text>
           <Text style={styles.subtitle}>
             Comparte este código o el QR con tus amigos para que se unan.
           </Text>
 
           <View style={styles.qrWrap}>
-            <InviteQr code={group.code} />
+            <InviteQr code={createdGroup.code} />
           </View>
 
-          <Text style={styles.code}>{group.code}</Text>
+          <Text style={styles.code}>{createdGroup.code}</Text>
 
           <View style={styles.footer}>
             <PrimaryButton
@@ -53,12 +62,12 @@ export default function CreateGroupScreen() {
               variant="secondary"
               onPress={() =>
                 Share.share({
-                  message: `Únete a mi grupo "${group.name}" en Bounty con el código ${group.code}`,
+                  message: `Únete a mi grupo "${createdGroup.name}" en Bounty con el código ${createdGroup.code}`,
                 })
               }
             />
             <View style={{ height: spacing.sm }} />
-            <PrimaryButton label="Entrar al grupo" onPress={() => router.replace("/(tabs)")} />
+            <PrimaryButton label="Entrar al grupo" onPress={handleEnter} loading={entering} />
           </View>
         </View>
       </SafeAreaView>

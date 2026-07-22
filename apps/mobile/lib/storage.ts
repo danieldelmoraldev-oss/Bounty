@@ -1,28 +1,55 @@
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 const TOKEN_KEY = "bounty_token";
 const ACTIVE_GROUP_KEY = "bounty_active_group_id";
 
-export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(TOKEN_KEY);
+// expo-secure-store no tiene una implementación real en web. Usamos
+// localStorage solo ahí (previsualización en navegador); el móvil real
+// siempre pasa por SecureStore.
+const isWeb = Platform.OS === "web";
+
+async function getItem(key: string): Promise<string | null> {
+  if (isWeb) return globalThis.localStorage?.getItem(key) ?? null;
+  return SecureStore.getItemAsync(key);
 }
 
-export async function setToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+async function setItem(key: string, value: string): Promise<void> {
+  if (isWeb) {
+    globalThis.localStorage?.setItem(key, value);
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
 }
 
-export async function clearToken(): Promise<void> {
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
+async function deleteItem(key: string): Promise<void> {
+  if (isWeb) {
+    globalThis.localStorage?.removeItem(key);
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
 }
 
-export async function getActiveGroupId(): Promise<string | null> {
-  return SecureStore.getItemAsync(ACTIVE_GROUP_KEY);
+export function getToken(): Promise<string | null> {
+  return getItem(TOKEN_KEY);
 }
 
-export async function setActiveGroupId(groupId: string): Promise<void> {
-  await SecureStore.setItemAsync(ACTIVE_GROUP_KEY, groupId);
+export function setToken(token: string): Promise<void> {
+  return setItem(TOKEN_KEY, token);
 }
 
-export async function clearActiveGroupId(): Promise<void> {
-  await SecureStore.deleteItemAsync(ACTIVE_GROUP_KEY);
+export function clearToken(): Promise<void> {
+  return deleteItem(TOKEN_KEY);
+}
+
+export function getActiveGroupId(): Promise<string | null> {
+  return getItem(ACTIVE_GROUP_KEY);
+}
+
+export function setActiveGroupId(groupId: string): Promise<void> {
+  return setItem(ACTIVE_GROUP_KEY, groupId);
+}
+
+export function clearActiveGroupId(): Promise<void> {
+  return deleteItem(ACTIVE_GROUP_KEY);
 }

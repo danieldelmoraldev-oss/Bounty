@@ -29,7 +29,8 @@ type AppState = {
     avatarEmoji: string;
     avatarColor: string;
   }) => Promise<void>;
-  createNewGroup: (name: string) => Promise<void>;
+  createNewGroup: (name: string) => Promise<GroupDetail>;
+  activateGroup: (detail: GroupDetail) => Promise<void>;
   joinExistingGroup: (code: string) => Promise<void>;
   refreshGroup: () => Promise<void>;
   leaveCurrentGroup: () => Promise<void>;
@@ -97,17 +98,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // No activa el grupo todavía: create.tsx primero muestra el código/QR y
+  // solo pasa a "ready" cuando el usuario confirma con activateGroup.
   const createNewGroup = useCallback<AppState["createNewGroup"]>(async (name) => {
     setError(null);
     try {
-      const detail = await api.createGroup(name);
-      await setActiveGroupId(detail.id);
-      setGroup(detail);
-      setStatus("ready");
+      return await api.createGroup(name);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear el grupo");
       throw err;
     }
+  }, []);
+
+  const activateGroup = useCallback<AppState["activateGroup"]>(async (detail) => {
+    await setActiveGroupId(detail.id);
+    setGroup(detail);
+    setStatus("ready");
   }, []);
 
   const joinExistingGroup = useCallback<AppState["joinExistingGroup"]>(async (code) => {
@@ -150,6 +156,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       error,
       completeProfile,
       createNewGroup,
+      activateGroup,
       joinExistingGroup,
       refreshGroup,
       leaveCurrentGroup,
@@ -162,6 +169,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       error,
       completeProfile,
       createNewGroup,
+      activateGroup,
       joinExistingGroup,
       refreshGroup,
       leaveCurrentGroup,
