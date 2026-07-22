@@ -45,7 +45,7 @@ function toChallengeCard(a: HydratedDocument<ChallengeAssignmentDoc>): Challenge
     prompt: a.prompt,
     status: a.status,
     points: POINTS_BY_DIFFICULTY[difficulty],
-    photoDataUrl: a.photoDataUrl ?? null,
+    photoUrl: a.photoUrl ?? null,
     submittedAt: a.submittedAt ? a.submittedAt.toISOString() : null,
   };
 }
@@ -207,8 +207,6 @@ partiesRouter.post(
   },
 );
 
-const MAX_PHOTO_DATA_URL_LENGTH = 4_000_000; // ~3MB de imagen decodificada
-
 partiesRouter.post(
   "/groups/:groupId/parties/:partyId/challenges/:assignmentId/submit",
   requireAuth,
@@ -222,13 +220,9 @@ partiesRouter.post(
       return;
     }
 
-    const { photoDataUrl } = (req.body ?? {}) as SubmitChallengeRequest;
-    if (typeof photoDataUrl !== "string" || !photoDataUrl.startsWith("data:image/")) {
-      res.status(400).json({ error: "photoDataUrl debe ser una imagen válida" });
-      return;
-    }
-    if (photoDataUrl.length > MAX_PHOTO_DATA_URL_LENGTH) {
-      res.status(413).json({ error: "La foto es demasiado grande" });
+    const { photoUrl } = (req.body ?? {}) as SubmitChallengeRequest;
+    if (typeof photoUrl !== "string" || !photoUrl.startsWith("https://")) {
+      res.status(400).json({ error: "photoUrl debe ser una URL válida" });
       return;
     }
 
@@ -249,7 +243,7 @@ partiesRouter.post(
     }
 
     assignment.status = "submitted";
-    assignment.photoDataUrl = photoDataUrl;
+    assignment.photoUrl = photoUrl;
     assignment.submittedAt = new Date();
     await assignment.save();
 
@@ -288,7 +282,7 @@ partiesRouter.get(
           id: a.id,
           difficulty: a.difficulty as ChallengeDifficulty,
           prompt: a.prompt,
-          photoDataUrl: a.photoDataUrl ?? null,
+          photoUrl: a.photoUrl ?? null,
           submittedAt: a.submittedAt ? a.submittedAt.toISOString() : null,
           userId: user.id,
           displayName: user.displayName,

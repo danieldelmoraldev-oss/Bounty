@@ -5,6 +5,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as api from "@/lib/api";
+import { uploadPhoto } from "@/lib/cloudinary";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 import { PrimaryButton } from "@/components/PrimaryButton";
 
@@ -20,7 +21,7 @@ export default function SubmitChallengeScreen() {
   }>();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
-  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,15 +30,9 @@ export default function SubmitChallengeScreen() {
     if (!cameraRef.current || capturing) return;
     setCapturing(true);
     try {
-      const result = await cameraRef.current.takePictureAsync({ quality: 0.4, base64: true });
-      if (result?.base64) {
-        // En native, `base64` es el payload puro (hay que añadirle el prefijo
-        // data:). En web, expo-camera ya devuelve el data URL completo tanto
-        // en `uri` como en `base64` -- si ya viene con el prefijo, se usa tal cual.
-        const dataUrl = result.base64.startsWith("data:")
-          ? result.base64
-          : `data:image/jpeg;base64,${result.base64}`;
-        setPhotoDataUrl(dataUrl);
+      const result = await cameraRef.current.takePictureAsync({ quality: 0.4 });
+      if (result?.uri) {
+        setPhotoUri(result.uri);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo hacer la foto");
@@ -47,11 +42,12 @@ export default function SubmitChallengeScreen() {
   }
 
   async function handleSubmit() {
-    if (!photoDataUrl) return;
+    if (!photoUri) return;
     setSubmitting(true);
     setError(null);
     try {
-      await api.submitChallenge(params.groupId, params.partyId, params.assignmentId, photoDataUrl);
+      const photoUrl = await uploadPhoto(photoUri);
+      await api.submitChallenge(params.groupId, params.partyId, params.assignmentId, photoUrl);
       router.back();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo enviar la prueba");
@@ -76,8 +72,8 @@ export default function SubmitChallengeScreen() {
 
   return (
     <View style={styles.container}>
-      {photoDataUrl ? (
-        <Image source={{ uri: photoDataUrl }} style={styles.preview} />
+      {photoUri ? (
+        <Image source={{ uri: photoUri }} style={styles.preview} />
       ) : (
         <CameraView ref={cameraRef} style={styles.camera} />
       )}
@@ -89,12 +85,12 @@ export default function SubmitChallengeScreen() {
 
       <SafeAreaView style={styles.footer} edges={["bottom"]}>
         {error && <Text style={styles.error}>{error}</Text>}
-        {photoDataUrl ? (
+        {photoUri ? (
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <PrimaryButton
               label="Repetir"
               variant="secondary"
-              onPress={() => setPhotoDataUrl(null)}
+              onPress={() => setPhotoUri(null)}
               style={{ flex: 1 }}
             />
             <PrimaryButton

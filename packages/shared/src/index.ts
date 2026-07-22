@@ -122,7 +122,7 @@ export interface ChallengeCard {
   prompt: string;
   status: ChallengeStatus;
   points: number;
-  photoDataUrl: string | null;
+  photoUrl: string | null;
   submittedAt: string | null;
 }
 
@@ -132,7 +132,7 @@ export interface PartyState {
 }
 
 export interface SubmitChallengeRequest {
-  photoDataUrl: string;
+  photoUrl: string;
 }
 
 export interface ReviewChallengeRequest {
@@ -143,10 +143,65 @@ export interface ReviewQueueItem {
   id: string;
   difficulty: ChallengeDifficulty;
   prompt: string;
-  photoDataUrl: string | null;
+  photoUrl: string | null;
   submittedAt: string | null;
   userId: string;
   displayName: string;
   avatarEmoji: string;
   avatarColor: string;
+}
+
+export interface FreestylePost {
+  id: string;
+  photoUrl: string;
+  caption: string | null;
+  createdAt: string;
+}
+
+export interface CreateFreestyleRequest {
+  photoUrl: string;
+  caption?: string;
+}
+
+export interface RateFreestyleRequest {
+  stars: 1 | 2 | 3 | 4 | 5;
+}
+
+export interface AlbumAuthor {
+  userId: string;
+  displayName: string;
+  avatarEmoji: string;
+  avatarColor: string;
+}
+
+export interface AlbumChallengeItem {
+  kind: "challenge";
+  id: string;
+  photoUrl: string;
+  createdAt: string;
+  author: AlbumAuthor;
+  difficulty: ChallengeDifficulty;
+  prompt: string;
+}
+
+export interface AlbumFreestyleItem {
+  kind: "freestyle";
+  id: string;
+  photoUrl: string;
+  createdAt: string;
+  author: AlbumAuthor;
+  caption: string | null;
+  averageStars: number | null;
+  ratingCount: number;
+  myStars: number | null;
+}
+
+export type AlbumItem = AlbumChallengeItem | AlbumFreestyleItem;
+
+export interface AlbumFolder {
+  partyId: string;
+  startedAt: string;
+  endedAt: string | null;
+  itemCount: number;
+  coverUrl: string | null;
 }

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { AVATAR_COLORS, AVATAR_EMOJIS } from "@/constants/avatars";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -19,6 +20,7 @@ import { useAppState } from "@/context/AppState";
 
 export default function IntelScreen() {
   const { user, group, refreshGroup, leaveCurrentGroup, updateMyProfile } = useAppState();
+  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -86,6 +88,12 @@ export default function IntelScreen() {
             </View>
           </View>
         </View>
+
+        <PrimaryButton
+          label="Ver álbum"
+          variant="secondary"
+          onPress={() => router.push("/album")}
+        />
 
         <Text style={styles.sectionTitle}>ESCUADRÓN</Text>
         <View style={styles.card}>

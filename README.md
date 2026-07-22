@@ -63,10 +63,20 @@ la URL de API que le indique su propio `.env`.
   ni Render tienen una IP fija, así que restringir por IP concreta corta la
   conexión tarde o temprano.
 
+## Fotos y vídeos (Cloudinary)
+
+El móvil sube las fotos (retos y cámara libre) directamente a Cloudinary desde
+el dispositivo, sin pasar por el servidor: solo le llega la URL resultante.
+Variables en `apps/mobile/.env.development` / `.env.production`
+(`EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`)
+— no son secretos, son públicas por diseño de los presets "unsigned" de
+Cloudinary. El preset debe tener **Signing Mode = Unsigned** en su dashboard
+o las subidas fallan con 400.
+
 ## Roadmap
 
 El plan completo por fases vive en las notas del proyecto. Resumen: 0)
-Cimientos ✅, 1) Identidad y grupos ✅ (auth sin fricción, crear/unirse a
-grupo por código o QR), 2) Temporadas y ranking, 3) Motor de retos, 4)
-Cámara libre y álbum, 5) Economía y tienda, 6) Recaps, 7) Preparación de
-release (EAS build + Play Store).
+Cimientos ✅, 1) Identidad y grupos ✅, 2) Temporadas y ranking ✅, 3) Motor de
+retos ✅, 4) Cámara libre y álbum ✅ (fotos de retos + freestyle con texto,
+carpetas por fiesta, valoración 1-5 estrellas), 5) Economía y tienda, 6)
+Recaps, 7) Preparación de release (EAS build + Play Store).

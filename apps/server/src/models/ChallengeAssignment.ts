@@ -13,7 +13,7 @@ const challengeAssignmentSchema = new Schema(
       required: true,
       default: "locked",
     },
-    photoDataUrl: { type: String, default: null },
+    photoUrl: { type: String, default: null },
     submittedAt: { type: Date, default: null },
     reviewedAt: { type: Date, default: null },
   },

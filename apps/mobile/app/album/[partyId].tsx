@@ -2,22 +2,33 @@ import { useCallback, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import type { ReviewQueueItem } from "@bounty/shared";
+import type { AlbumItem } from "@bounty/shared";
 import * as api from "@/lib/api";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { StarRating } from "@/components/StarRating";
+import { useAppState } from "@/context/AppState";
 
-export default function ReviewQueueScreen() {
+const DIFFICULTY_COLOR: Record<number, string> = {
+  1: colors.tertiary,
+  2: colors.tertiary,
+  3: colors.secondary,
+  4: colors.danger,
+  5: colors.danger,
+};
+
+export default function AlbumPartyScreen() {
+  const { group } = useAppState();
   const router = useRouter();
-  const params = useLocalSearchParams<{ groupId: string; partyId: string }>();
-  const [items, setItems] = useState<ReviewQueueItem[]>([]);
+  const params = useLocalSearchParams<{ partyId: string }>();
+  const [items, setItems] = useState<AlbumItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [decidingId, setDecidingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const queue = await api.fetchReviewQueue(params.groupId, params.partyId);
-    setItems(queue);
-  }, [params.groupId, params.partyId]);
+    if (!group) return;
+    const detail = await api.fetchAlbumDetail(group.id, params.partyId);
+    setItems(detail);
+  }, [group, params.partyId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -26,59 +37,57 @@ export default function ReviewQueueScreen() {
     }, [load]),
   );
 
-  async function decide(item: ReviewQueueItem, approve: boolean) {
-    setDecidingId(item.id);
-    try {
-      await api.reviewChallenge(params.groupId, params.partyId, item.id, approve);
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-    } finally {
-      setDecidingId(null);
-    }
+  async function handleRate(postId: string, stars: number) {
+    if (!group) return;
+    await api.rateFreestyle(group.id, postId, stars);
+    await load();
   }
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Revisar envíos</Text>
+        <Text style={styles.title}>Fiesta</Text>
         <PrimaryButton label="Cerrar" variant="secondary" onPress={() => router.back()} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         {!loading && items.length === 0 && (
-          <Text style={styles.emptyText}>No queda nada por revisar. Todo al día.</Text>
+          <Text style={styles.emptyText}>No hay fotos en esta fiesta todavía.</Text>
         )}
 
         {items.map((item) => (
-          <View key={item.id} style={styles.card}>
+          <View key={`${item.kind}-${item.id}`} style={styles.card}>
             <View style={styles.cardHeader}>
-              <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
-                <Text style={styles.avatarEmoji}>{item.avatarEmoji}</Text>
+              <View style={[styles.avatar, { backgroundColor: item.author.avatarColor }]}>
+                <Text style={styles.avatarEmoji}>{item.author.avatarEmoji}</Text>
               </View>
-              <Text style={styles.userName}>{item.displayName}</Text>
-              <Text style={styles.difficultyText}>NIVEL {item.difficulty}</Text>
+              <Text style={styles.authorName}>{item.author.displayName}</Text>
+              {item.kind === "challenge" && (
+                <View
+                  style={[styles.difficultyBadge, { borderColor: DIFFICULTY_COLOR[item.difficulty] }]}
+                >
+                  <Text style={[styles.difficultyText, { color: DIFFICULTY_COLOR[item.difficulty] }]}>
+                    NIVEL {item.difficulty}
+                  </Text>
+                </View>
+              )}
             </View>
 
-            <Text style={styles.prompt}>{item.prompt}</Text>
+            <Image source={{ uri: item.photoUrl }} style={styles.photo} resizeMode="cover" />
 
-            {item.photoUrl && (
-              <Image source={{ uri: item.photoUrl }} style={styles.photo} resizeMode="cover" />
+            {item.kind === "challenge" ? (
+              <Text style={styles.caption}>{item.prompt}</Text>
+            ) : (
+              <>
+                {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
+                <StarRating
+                  average={item.averageStars}
+                  count={item.ratingCount}
+                  myStars={item.myStars}
+                  onRate={(stars) => handleRate(item.id, stars)}
+                />
+              </>
             )}
-
-            <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm }}>
-              <PrimaryButton
-                label="Rechazar"
-                variant="danger"
-                onPress={() => decide(item, false)}
-                loading={decidingId === item.id}
-                style={{ flex: 1 }}
-              />
-              <PrimaryButton
-                label="Aprobar"
-                onPress={() => decide(item, true)}
-                loading={decidingId === item.id}
-                style={{ flex: 1 }}
-              />
-            </View>
           </View>
         ))}
       </ScrollView>
@@ -137,28 +146,33 @@ const styles = StyleSheet.create({
   avatarEmoji: {
     fontSize: 14,
   },
-  userName: {
+  authorName: {
     flex: 1,
     fontFamily: fonts.mono,
     fontSize: 13,
     color: colors.textPrimary,
   },
+  difficultyBadge: {
+    borderWidth: 1,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
   difficultyText: {
     fontFamily: fonts.monoBold,
     fontSize: 10,
     letterSpacing: 0.5,
-    color: colors.textFaint,
-  },
-  prompt: {
-    fontFamily: fonts.mono,
-    fontSize: 13,
-    color: colors.textPrimary,
-    lineHeight: 19,
   },
   photo: {
     width: "100%",
     aspectRatio: 1,
     borderRadius: radii.md,
     backgroundColor: colors.surfaceElevated,
+  },
+  caption: {
+    fontFamily: fonts.mono,
+    fontSize: 13,
+    color: colors.textPrimary,
+    lineHeight: 19,
   },
 });

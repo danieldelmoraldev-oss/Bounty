@@ -1,6 +1,9 @@
 import type {
+  AlbumFolder,
+  AlbumItem,
   AuthResponse,
   ChallengeCard,
+  FreestylePost,
   GroupDetail,
   GroupSummary,
   HealthResponse,
@@ -148,11 +151,11 @@ export function submitChallenge(
   groupId: string,
   partyId: string,
   assignmentId: string,
-  photoDataUrl: string,
+  photoUrl: string,
 ): Promise<ChallengeCard> {
   return request<ChallengeCard>(
     `/groups/${groupId}/parties/${partyId}/challenges/${assignmentId}/submit`,
-    { method: "POST", body: { photoDataUrl }, auth: true },
+    { method: "POST", body: { photoUrl }, auth: true },
   );
 }
 
@@ -172,4 +175,33 @@ export function reviewChallenge(
     `/groups/${groupId}/parties/${partyId}/challenges/${assignmentId}/review`,
     { method: "POST", body: { approve }, auth: true },
   );
+}
+
+export function postFreestyle(
+  groupId: string,
+  partyId: string,
+  photoUrl: string,
+  caption?: string,
+): Promise<FreestylePost> {
+  return request<FreestylePost>(`/groups/${groupId}/parties/${partyId}/freestyle`, {
+    method: "POST",
+    body: { photoUrl, caption },
+    auth: true,
+  });
+}
+
+export function fetchAlbumFolders(groupId: string): Promise<AlbumFolder[]> {
+  return request<AlbumFolder[]>(`/groups/${groupId}/album`, { auth: true });
+}
+
+export function fetchAlbumDetail(groupId: string, partyId: string): Promise<AlbumItem[]> {
+  return request<AlbumItem[]>(`/groups/${groupId}/album/${partyId}`, { auth: true });
+}
+
+export function rateFreestyle(groupId: string, postId: string, stars: number): Promise<void> {
+  return request<void>(`/groups/${groupId}/album/freestyle/${postId}/rate`, {
+    method: "POST",
+    body: { stars },
+    auth: true,
+  });
 }

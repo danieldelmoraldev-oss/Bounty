@@ -8,17 +8,21 @@ import { usersRouter } from "./routes/users.ts";
 import { groupsRouter } from "./routes/groups.ts";
 import { seasonsRouter } from "./routes/seasons.ts";
 import { partiesRouter } from "./routes/parties.ts";
+import { albumRouter } from "./routes/album.ts";
 
 async function main() {
   const app = express();
   app.use(cors());
-  app.use(express.json({ limit: "6mb" }));
+  // Las fotos/vídeos ya se suben directo a Cloudinary desde el móvil; al
+  // servidor solo llegan URLs, así que no hace falta un límite grande.
+  app.use(express.json({ limit: "1mb" }));
   app.use(healthRouter);
   app.use(authRouter);
   app.use(usersRouter);
   app.use(groupsRouter);
   app.use(seasonsRouter);
   app.use(partiesRouter);
+  app.use(albumRouter);
 
   try {
     await connectDb();
