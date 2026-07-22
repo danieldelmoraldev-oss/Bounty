@@ -1,81 +1,187 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { HealthResponse } from "@bounty/shared";
-import { getHealth } from "@/lib/api";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
+import type { Season, SeasonLeaderboard } from "@bounty/shared";
+import * as api from "@/lib/api";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
-
-type Status =
-  | { kind: "loading" }
-  | { kind: "ok"; health: HealthResponse }
-  | { kind: "error"; message: string };
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { useAppState } from "@/context/AppState";
 
 export default function RanksScreen() {
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
+  const { user, group } = useAppState();
+  const [leaderboard, setLeaderboard] = useState<SeasonLeaderboard | null>(null);
+  const [history, setHistory] = useState<Season[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    getHealth()
-      .then((health) => setStatus({ kind: "ok", health }))
-      .catch((err) =>
-        setStatus({
-          kind: "error",
-          message: err instanceof Error ? err.message : "Error desconocido",
-        }),
-      );
-  }, []);
+  const isAdmin = group?.members.find((m) => m.userId === user?.id)?.role === "admin";
+
+  const load = useCallback(async () => {
+    if (!group) return;
+    const [active, seasons] = await Promise.all([
+      api.fetchActiveSeason(group.id),
+      api.fetchSeasonHistory(group.id),
+    ]);
+    setLeaderboard(active);
+    setHistory(seasons);
+  }, [group]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      load().finally(() => setLoading(false));
+    }, [load]),
+  );
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await load().catch(() => null);
+    setRefreshing(false);
+  }
+
+  async function handleStartSeason() {
+    if (!group) return;
+    setBusy(true);
+    try {
+      await api.startSeason(group.id);
+      await load();
+    } catch (err) {
+      Alert.alert("No se pudo empezar la temporada", err instanceof Error ? err.message : "");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function confirmEndSeason() {
+    if (!group || !leaderboard) return;
+    Alert.alert(
+      "Terminar temporada",
+      `Se cerrará "${leaderboard.season.name}" con el ranking actual. No se puede deshacer.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Terminar",
+          style: "destructive",
+          onPress: async () => {
+            setBusy(true);
+            try {
+              await api.endSeason(group.id, leaderboard.season.id);
+              await load();
+            } catch (err) {
+              Alert.alert("No se pudo terminar la temporada", err instanceof Error ? err.message : "");
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  if (!group) return null;
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.content}>
-        <Ionicons name="stats-chart-outline" size={40} color={colors.gold} />
-        <Text style={styles.title}>La Liga</Text>
-        <Text style={styles.subtitle}>
-          El ranking de la temporada llega en la Fase 1-2. Este chip valida
-          que la app ya habla con el servidor real.
-        </Text>
-        <StatusChip status={status} />
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function StatusChip({ status }: { status: Status }) {
-  if (status.kind === "loading") {
-    return (
-      <View style={styles.chip}>
-        <ActivityIndicator color={colors.textDim} size="small" />
-        <Text style={styles.chipText}>CONECTANDO...</Text>
-      </View>
-    );
-  }
-
-  if (status.kind === "error") {
-    return (
-      <View style={[styles.chip, { borderColor: colors.danger }]}>
-        <View style={[styles.dot, { backgroundColor: colors.danger }]} />
-        <Text style={[styles.chipText, { color: colors.danger }]}>
-          API OFFLINE — {status.message}
-        </Text>
-      </View>
-    );
-  }
-
-  const ok = status.health.status === "ok";
-  return (
-    <View
-      style={[styles.chip, { borderColor: ok ? colors.accent : colors.danger }]}
-    >
-      <View
-        style={[styles.dot, { backgroundColor: ok ? colors.accent : colors.danger }]}
-      />
-      <Text
-        style={[styles.chipText, { color: ok ? colors.accent : colors.danger }]}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
       >
-        {status.health.status.toUpperCase()} · DB {status.health.db.toUpperCase()} ·
-        MODE {status.health.dataMode.toUpperCase()}
-      </Text>
-    </View>
+        <View style={styles.header}>
+          <Ionicons name="stats-chart-outline" size={28} color={colors.gold} />
+          <View>
+            <Text style={styles.title}>La Liga</Text>
+            <Text style={styles.subtitle}>{group.name}</Text>
+          </View>
+        </View>
+
+        {loading ? null : leaderboard ? (
+          <>
+            <View style={styles.seasonBanner}>
+              <Text style={styles.seasonName}>{leaderboard.season.name}</Text>
+              <Text style={styles.seasonMeta}>TEMPORADA ACTIVA</Text>
+            </View>
+
+            <View style={styles.card}>
+              {leaderboard.entries.map((entry) => (
+                <View
+                  key={entry.userId}
+                  style={[
+                    styles.entryRow,
+                    entry.isLeader && styles.entryRowLeader,
+                    entry.isLoser && styles.entryRowLoser,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.rank,
+                      entry.isLeader && { color: colors.gold },
+                      entry.isLoser && { color: colors.danger },
+                    ]}
+                  >
+                    #{entry.rank}
+                  </Text>
+                  <View style={[styles.avatar, { backgroundColor: entry.avatarColor }]}>
+                    <Text style={styles.avatarEmoji}>{entry.avatarEmoji}</Text>
+                  </View>
+                  <Text style={styles.entryName}>{entry.displayName}</Text>
+                  {entry.isLeader && <Ionicons name="trophy" size={16} color={colors.gold} />}
+                  {entry.isLoser && <Ionicons name="skull-outline" size={16} color={colors.danger} />}
+                  <Text style={styles.points}>{entry.points} pts</Text>
+                </View>
+              ))}
+            </View>
+
+            {isAdmin && (
+              <View style={styles.actionWrap}>
+                <PrimaryButton
+                  label={busy ? "..." : "Terminar temporada"}
+                  variant="danger"
+                  onPress={confirmEndSeason}
+                  loading={busy}
+                />
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={styles.card}>
+            <Text style={styles.emptyText}>
+              No hay ninguna temporada activa. {isAdmin ? "Empieza una para que el grupo compita." : "Pídele al admin que empiece una."}
+            </Text>
+            {isAdmin && (
+              <View style={styles.actionWrap}>
+                <PrimaryButton
+                  label={busy ? "Creando..." : "Empezar temporada"}
+                  onPress={handleStartSeason}
+                  loading={busy}
+                />
+              </View>
+            )}
+          </View>
+        )}
+
+        {history.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>TEMPORADAS ANTERIORES</Text>
+            <View style={styles.card}>
+              {history
+                .filter((s) => s.status === "ended")
+                .map((season) => (
+                  <View key={season.id} style={styles.historyRow}>
+                    <Text style={styles.historyName}>{season.name}</Text>
+                    <Text style={styles.historyDate}>
+                      {new Date(season.startedAt).toLocaleDateString()} –{" "}
+                      {season.endedAt ? new Date(season.endedAt).toLocaleDateString() : ""}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -85,45 +191,118 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.xl,
+    padding: spacing.lg,
     gap: spacing.md,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: 32,
+    fontSize: 22,
     color: colors.textPrimary,
   },
   subtitle: {
     fontFamily: fonts.mono,
-    fontSize: 13,
+    fontSize: 11,
     color: colors.textDim,
-    textAlign: "center",
-    lineHeight: 20,
   },
-  chip: {
+  seasonBanner: {
+    alignItems: "center",
+    gap: 2,
+  },
+  seasonName: {
+    fontFamily: fonts.displayBold,
+    fontSize: 18,
+    color: colors.textPrimary,
+  },
+  seasonMeta: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: 1,
+    color: colors.accent,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  entryRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    marginTop: spacing.md,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.xs,
+  },
+  entryRowLeader: {
+    backgroundColor: "rgba(255,214,92,0.08)",
+  },
+  entryRowLoser: {
+    backgroundColor: "rgba(255,77,77,0.08)",
+  },
+  rank: {
+    fontFamily: fonts.monoBold,
+    fontSize: 14,
+    color: colors.textDim,
+    width: 28,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
     borderRadius: radii.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  avatarEmoji: {
+    fontSize: 16,
   },
-  chipText: {
+  entryName: {
+    flex: 1,
+    fontFamily: fonts.mono,
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  points: {
+    fontFamily: fonts.monoBold,
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  actionWrap: {
+    marginTop: spacing.sm,
+  },
+  emptyText: {
+    fontFamily: fonts.mono,
+    fontSize: 13,
+    color: colors.textDim,
+    lineHeight: 19,
+  },
+  sectionTitle: {
     fontFamily: fonts.mono,
     fontSize: 11,
-    color: colors.textDim,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    color: colors.textFaint,
+    marginTop: spacing.sm,
+  },
+  historyRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: spacing.xs,
+  },
+  historyName: {
+    fontFamily: fonts.mono,
+    fontSize: 13,
+    color: colors.textPrimary,
+  },
+  historyDate: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.textFaint,
   },
 });

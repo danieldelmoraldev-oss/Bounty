@@ -64,3 +64,33 @@ export interface UpdateProfileRequest {
 export interface ApiErrorBody {
   error: string;
 }
+
+export type SeasonStatus = "active" | "ended";
+
+export interface Season {
+  id: string;
+  name: string;
+  status: SeasonStatus;
+  startedAt: string;
+  endedAt: string | null;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  avatarEmoji: string;
+  avatarColor: string;
+  points: number;
+  isLeader: boolean;
+  isLoser: boolean;
+}
+
+export interface SeasonLeaderboard {
+  season: Season;
+  entries: LeaderboardEntry[];
+}
+
+export interface StartSeasonRequest {
+  name?: string;
+}

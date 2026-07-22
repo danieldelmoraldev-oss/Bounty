@@ -3,6 +3,8 @@ import type {
   GroupDetail,
   GroupSummary,
   HealthResponse,
+  Season,
+  SeasonLeaderboard,
   UpdateProfileRequest,
   UserProfile,
 } from "@bounty/shared";
@@ -87,4 +89,27 @@ export function fetchGroup(groupId: string): Promise<GroupDetail> {
 
 export function leaveGroup(groupId: string): Promise<void> {
   return request<void>(`/groups/${groupId}/membership`, { method: "DELETE", auth: true });
+}
+
+export function fetchActiveSeason(groupId: string): Promise<SeasonLeaderboard | null> {
+  return request<SeasonLeaderboard | null>(`/groups/${groupId}/seasons/active`, { auth: true });
+}
+
+export function fetchSeasonHistory(groupId: string): Promise<Season[]> {
+  return request<Season[]>(`/groups/${groupId}/seasons`, { auth: true });
+}
+
+export function startSeason(groupId: string, name?: string): Promise<Season> {
+  return request<Season>(`/groups/${groupId}/seasons`, {
+    method: "POST",
+    body: { name },
+    auth: true,
+  });
+}
+
+export function endSeason(groupId: string, seasonId: string): Promise<Season> {
+  return request<Season>(`/groups/${groupId}/seasons/${seasonId}/end`, {
+    method: "POST",
+    auth: true,
+  });
 }

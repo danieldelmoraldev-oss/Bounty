@@ -6,6 +6,7 @@ import { healthRouter } from "./routes/health.ts";
 import { authRouter } from "./routes/auth.ts";
 import { usersRouter } from "./routes/users.ts";
 import { groupsRouter } from "./routes/groups.ts";
+import { seasonsRouter } from "./routes/seasons.ts";
 
 async function main() {
   const app = express();
@@ -15,6 +16,7 @@ async function main() {
   app.use(authRouter);
   app.use(usersRouter);
   app.use(groupsRouter);
+  app.use(seasonsRouter);
 
   try {
     await connectDb();
