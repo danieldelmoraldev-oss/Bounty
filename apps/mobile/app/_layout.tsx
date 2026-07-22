@@ -1,0 +1,67 @@
+import { useFonts } from "expo-font";
+import {
+  Anybody_700Bold,
+  Anybody_800ExtraBold,
+} from "@expo-google-fonts/anybody";
+import {
+  SpaceMono_400Regular,
+  SpaceMono_700Bold,
+} from "@expo-google-fonts/space-mono";
+import { DarkTheme, Stack, ThemeProvider } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import "react-native-reanimated";
+import { colors } from "@/constants/theme";
+
+export { ErrorBoundary } from "expo-router";
+
+export const unstable_settings = {
+  initialRouteName: "(tabs)",
+};
+
+SplashScreen.preventAutoHideAsync();
+
+const navigationTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: colors.background,
+    card: colors.surface,
+    border: colors.border,
+    primary: colors.accent,
+    text: colors.textPrimary,
+  },
+};
+
+export default function RootLayout() {
+  const [loaded, error] = useFonts({
+    Anybody_700Bold,
+    Anybody_800ExtraBold,
+    SpaceMono_400Regular,
+    SpaceMono_700Bold,
+  });
+
+  useEffect(() => {
+    if (error) throw error;
+  }, [error]);
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null;
+  }
+
+  return (
+    <ThemeProvider value={navigationTheme}>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </ThemeProvider>
+  );
+}

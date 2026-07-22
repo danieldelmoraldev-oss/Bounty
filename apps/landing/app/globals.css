@@ -1,0 +1,30 @@
+:root {
+  --bg: #0a0a0b;
+  --surface: #16161a;
+  --text: #eceef0;
+  --text-dim: #9a9ea6;
+  --accent: #b7f700;
+  --accent-dim: #8fc400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    "Geist",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+a {
+  color: inherit;
+}

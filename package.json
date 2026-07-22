@@ -1,0 +1,11 @@
+{
+  "name": "bounty",
+  "private": true,
+  "packageManager": "pnpm@11.15.1",
+  "scripts": {
+    "dev:server": "pnpm --filter @bounty/server dev",
+    "dev:mobile": "pnpm --filter @bounty/mobile start",
+    "dev:landing": "pnpm --filter @bounty/landing dev",
+    "seed": "pnpm --filter @bounty/server seed"
+  }
+}

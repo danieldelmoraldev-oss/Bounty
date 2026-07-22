@@ -1,0 +1,21 @@
+node_modules/
+dist/
+build/
+.expo/
+.expo-shared/
+*.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+Thumbs.db
+.vscode/
+*.tsbuildinfo
+android/
+ios/
+.eas/
+
+# Herramientas locales, no forman parte del proyecto
+/.claude/
+# Referencia de diseño (Stitch) — solo local, no versionado
+/stitch_bounty_social_party_quest/
