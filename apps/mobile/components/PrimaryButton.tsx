@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, type ViewStyle } from "react-native";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
 
 type Props = {
@@ -7,6 +7,7 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "danger";
+  style?: ViewStyle;
 };
 
 export function PrimaryButton({
@@ -15,6 +16,7 @@ export function PrimaryButton({
   loading,
   disabled,
   variant = "primary",
+  style,
 }: Props) {
   const isDisabled = disabled || loading;
 
@@ -27,6 +29,7 @@ export function PrimaryButton({
         variant === "secondary" && styles.secondary,
         variant === "danger" && styles.danger,
         isDisabled && styles.disabled,
+        style,
       ]}
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -55,6 +58,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderRadius: radii.md,
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     alignItems: "center",
     justifyContent: "center",
   },

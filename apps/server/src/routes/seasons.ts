@@ -5,12 +5,9 @@ import { requireAuth } from "../middleware/auth.ts";
 import { Season, type SeasonDoc } from "../models/Season.ts";
 import { Membership } from "../models/Membership.ts";
 import { computeLeaderboard } from "../lib/leaderboard.ts";
+import { firstParam } from "../lib/params.ts";
 
 export const seasonsRouter = Router();
-
-function firstParam(value: string | string[]): string {
-  return Array.isArray(value) ? value[0]! : value;
-}
 
 function toSeasonDto(season: HydratedDocument<SeasonDoc>): SeasonDto {
   return {

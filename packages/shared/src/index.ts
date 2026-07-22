@@ -94,3 +94,59 @@ export interface SeasonLeaderboard {
 export interface StartSeasonRequest {
   name?: string;
 }
+
+export type ChallengeDifficulty = 1 | 2 | 3 | 4 | 5;
+
+export const POINTS_BY_DIFFICULTY: Record<ChallengeDifficulty, number> = {
+  1: 1,
+  2: 2,
+  3: 4,
+  4: 7,
+  5: 10,
+};
+
+export type ChallengeStatus = "locked" | "available" | "submitted" | "approved" | "rejected";
+
+export type PartyStatus = "active" | "ended";
+
+export interface Party {
+  id: string;
+  status: PartyStatus;
+  startedAt: string;
+  endedAt: string | null;
+}
+
+export interface ChallengeCard {
+  id: string;
+  difficulty: ChallengeDifficulty;
+  prompt: string;
+  status: ChallengeStatus;
+  points: number;
+  photoDataUrl: string | null;
+  submittedAt: string | null;
+}
+
+export interface PartyState {
+  party: Party;
+  challenges: ChallengeCard[];
+}
+
+export interface SubmitChallengeRequest {
+  photoDataUrl: string;
+}
+
+export interface ReviewChallengeRequest {
+  approve: boolean;
+}
+
+export interface ReviewQueueItem {
+  id: string;
+  difficulty: ChallengeDifficulty;
+  prompt: string;
+  photoDataUrl: string | null;
+  submittedAt: string | null;
+  userId: string;
+  displayName: string;
+  avatarEmoji: string;
+  avatarColor: string;
+}

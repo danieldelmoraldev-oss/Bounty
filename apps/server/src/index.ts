@@ -7,16 +7,18 @@ import { authRouter } from "./routes/auth.ts";
 import { usersRouter } from "./routes/users.ts";
 import { groupsRouter } from "./routes/groups.ts";
 import { seasonsRouter } from "./routes/seasons.ts";
+import { partiesRouter } from "./routes/parties.ts";
 
 async function main() {
   const app = express();
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: "6mb" }));
   app.use(healthRouter);
   app.use(authRouter);
   app.use(usersRouter);
   app.use(groupsRouter);
   app.use(seasonsRouter);
+  app.use(partiesRouter);
 
   try {
     await connectDb();

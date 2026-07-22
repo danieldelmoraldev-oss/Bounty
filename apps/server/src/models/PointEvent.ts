@@ -5,7 +5,7 @@ const pointEventSchema = new Schema(
     season: { type: Types.ObjectId, ref: "Season", required: true },
     user: { type: Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required: true },
-    reason: { type: String, enum: ["challenge_completed"], required: true },
+    reason: { type: String, enum: ["challenge_completed", "reroll_cost"], required: true },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );

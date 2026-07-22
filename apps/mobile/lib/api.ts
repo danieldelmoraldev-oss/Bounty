@@ -1,8 +1,12 @@
 import type {
   AuthResponse,
+  ChallengeCard,
   GroupDetail,
   GroupSummary,
   HealthResponse,
+  Party,
+  PartyState,
+  ReviewQueueItem,
   Season,
   SeasonLeaderboard,
   UpdateProfileRequest,
@@ -112,4 +116,60 @@ export function endSeason(groupId: string, seasonId: string): Promise<Season> {
     method: "POST",
     auth: true,
   });
+}
+
+export function fetchActiveParty(groupId: string): Promise<PartyState | null> {
+  return request<PartyState | null>(`/groups/${groupId}/parties/active`, { auth: true });
+}
+
+export function startParty(groupId: string): Promise<Party> {
+  return request<Party>(`/groups/${groupId}/parties`, { method: "POST", auth: true });
+}
+
+export function endParty(groupId: string, partyId: string): Promise<Party> {
+  return request<Party>(`/groups/${groupId}/parties/${partyId}/end`, {
+    method: "POST",
+    auth: true,
+  });
+}
+
+export function rerollChallenge(
+  groupId: string,
+  partyId: string,
+  assignmentId: string,
+): Promise<ChallengeCard> {
+  return request<ChallengeCard>(
+    `/groups/${groupId}/parties/${partyId}/challenges/${assignmentId}/reroll`,
+    { method: "POST", auth: true },
+  );
+}
+
+export function submitChallenge(
+  groupId: string,
+  partyId: string,
+  assignmentId: string,
+  photoDataUrl: string,
+): Promise<ChallengeCard> {
+  return request<ChallengeCard>(
+    `/groups/${groupId}/parties/${partyId}/challenges/${assignmentId}/submit`,
+    { method: "POST", body: { photoDataUrl }, auth: true },
+  );
+}
+
+export function fetchReviewQueue(groupId: string, partyId: string): Promise<ReviewQueueItem[]> {
+  return request<ReviewQueueItem[]>(`/groups/${groupId}/parties/${partyId}/review`, {
+    auth: true,
+  });
+}
+
+export function reviewChallenge(
+  groupId: string,
+  partyId: string,
+  assignmentId: string,
+  approve: boolean,
+): Promise<ChallengeCard> {
+  return request<ChallengeCard>(
+    `/groups/${groupId}/parties/${partyId}/challenges/${assignmentId}/review`,
+    { method: "POST", body: { approve }, auth: true },
+  );
 }
