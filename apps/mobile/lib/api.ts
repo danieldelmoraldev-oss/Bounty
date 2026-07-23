@@ -9,6 +9,7 @@ import type {
   HealthResponse,
   Party,
   PartyState,
+  RecapSlide,
   ReviewQueueItem,
   Season,
   SeasonLeaderboard,
@@ -232,4 +233,8 @@ export function equipCosmetic(
     body: patch,
     auth: true,
   });
+}
+
+export function fetchRecap(groupId: string, partyId: string): Promise<RecapSlide[]> {
+  return request<RecapSlide[]>(`/groups/${groupId}/parties/${partyId}/recap`, { auth: true });
 }

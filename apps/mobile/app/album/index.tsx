@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import type { AlbumFolder } from "@bounty/shared";
 import * as api from "@/lib/api";
 import { colors, fonts, radii, spacing } from "@/constants/theme";
@@ -57,11 +58,22 @@ export default function AlbumFoldersScreen() {
             style={styles.folderCard}
             onPress={() => router.push(`/album/${item.partyId}`)}
           >
-            {item.coverUrl ? (
-              <Image source={{ uri: item.coverUrl }} style={styles.cover} resizeMode="cover" />
-            ) : (
-              <View style={styles.coverPlaceholder} />
-            )}
+            <View>
+              {item.coverUrl ? (
+                <Image source={{ uri: item.coverUrl }} style={styles.cover} resizeMode="cover" />
+              ) : (
+                <View style={styles.coverPlaceholder} />
+              )}
+              <Pressable
+                style={styles.recapButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push(`/album/recap/${item.partyId}`);
+                }}
+              >
+                <Ionicons name="play" size={14} color={colors.accentOn} />
+              </Pressable>
+            </View>
             <Text style={styles.folderDate}>{formatRange(item.startedAt, item.endedAt)}</Text>
             <Text style={styles.folderCount}>{item.itemCount} fotos</Text>
           </Pressable>
@@ -120,6 +132,17 @@ const styles = StyleSheet.create({
     width: "100%",
     aspectRatio: 1,
     backgroundColor: colors.surfaceElevated,
+  },
+  recapButton: {
+    position: "absolute",
+    bottom: spacing.xs,
+    right: spacing.xs,
+    width: 28,
+    height: 28,
+    borderRadius: radii.full,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
   },
   folderDate: {
     fontFamily: fonts.mono,

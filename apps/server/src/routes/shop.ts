@@ -143,6 +143,7 @@ shopRouter.post("/groups/:groupId/shop/purchase", requireAuth, async (req, res) 
 
   await PointEvent.create({
     season: season.id,
+    party: party?.id ?? null,
     user: req.userId,
     amount: -item.cost,
     reason: "shop_purchase",

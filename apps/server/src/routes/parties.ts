@@ -199,6 +199,7 @@ partiesRouter.post(
 
     await PointEvent.create({
       season: party.season,
+      party: party.id,
       user: req.userId,
       amount: -cost,
       reason: "reroll_cost",
@@ -348,6 +349,7 @@ partiesRouter.post(
       const multiplier = await getPointMultiplier(partyId, assignment.user.toString());
       await PointEvent.create({
         season: party.season,
+        party: partyId,
         user: assignment.user,
         amount: Math.round(POINTS_BY_DIFFICULTY[difficulty] * multiplier),
         reason: "challenge_completed",

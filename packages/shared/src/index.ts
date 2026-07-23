@@ -321,3 +321,19 @@ export interface EquipCosmeticRequest {
   frame?: string | null;
   title?: string | null;
 }
+
+export interface RecapStatsEntry {
+  displayName: string;
+  avatarEmoji: string;
+  avatarColor: string;
+  points: number;
+}
+
+export interface RecapStatsSlide {
+  kind: "stats";
+  totalChallenges: number;
+  totalFreestyle: number;
+  topEntries: RecapStatsEntry[];
+}
+
+export type RecapSlide = AlbumItem | RecapStatsSlide;

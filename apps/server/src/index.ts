@@ -10,6 +10,7 @@ import { seasonsRouter } from "./routes/seasons.ts";
 import { partiesRouter } from "./routes/parties.ts";
 import { albumRouter } from "./routes/album.ts";
 import { shopRouter } from "./routes/shop.ts";
+import { recapRouter } from "./routes/recap.ts";
 
 async function main() {
   const app = express();
@@ -25,6 +26,7 @@ async function main() {
   app.use(partiesRouter);
   app.use(albumRouter);
   app.use(shopRouter);
+  app.use(recapRouter);
 
   try {
     await connectDb();
