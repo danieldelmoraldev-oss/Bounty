@@ -40,6 +40,8 @@ async function buildGroupDetail(groupId: string): Promise<GroupDetail | null> {
           avatarColor: user.avatarColor,
           role: membership.role as "admin" | "member",
           joinedAt: membership.get("createdAt").toISOString(),
+          equippedFrame: membership.equippedFrame ?? null,
+          equippedTitle: membership.equippedTitle ?? null,
         },
       ];
     }),

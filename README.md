@@ -77,6 +77,6 @@ o las subidas fallan con 400.
 
 El plan completo por fases vive en las notas del proyecto. Resumen: 0)
 Cimientos ✅, 1) Identidad y grupos ✅, 2) Temporadas y ranking ✅, 3) Motor de
-retos ✅, 4) Cámara libre y álbum ✅ (fotos de retos + freestyle con texto,
-carpetas por fiesta, valoración 1-5 estrellas), 5) Economía y tienda, 6)
-Recaps, 7) Preparación de release (EAS build + Play Store).
+retos ✅, 4) Cámara libre y álbum ✅, 5) Economía y tienda ✅ (buffs de puntos,
+sabotajes entre miembros con efectos temporales, marcos y títulos
+cosméticos), 6) Recaps, 7) Preparación de release (EAS build + Play Store).

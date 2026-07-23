@@ -99,10 +99,21 @@ export default function IntelScreen() {
         <View style={styles.card}>
           {group.members.map((member) => (
             <View key={member.userId} style={styles.memberRow}>
-              <View style={[styles.avatar, { backgroundColor: member.avatarColor }]}>
+              <View
+                style={[
+                  styles.avatar,
+                  { backgroundColor: member.avatarColor },
+                  member.equippedFrame && { borderWidth: 3, borderColor: member.equippedFrame },
+                ]}
+              >
                 <Text style={styles.avatarEmoji}>{member.avatarEmoji}</Text>
               </View>
-              <Text style={styles.memberName}>{member.displayName}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.memberName}>{member.displayName}</Text>
+                {member.equippedTitle && (
+                  <Text style={styles.memberTitle}>{member.equippedTitle}</Text>
+                )}
+              </View>
               {member.role === "admin" && (
                 <View style={styles.adminBadge}>
                   <Text style={styles.adminBadgeText}>ADMIN</Text>
@@ -131,7 +142,7 @@ export default function IntelScreen() {
               <View style={[styles.avatar, { backgroundColor: user.avatarColor }]}>
                 <Text style={styles.avatarEmoji}>{user.avatarEmoji}</Text>
               </View>
-              <Text style={styles.memberName}>{user.displayName}</Text>
+              <Text style={[styles.memberName, { flex: 1 }]}>{user.displayName}</Text>
               <PrimaryButton label="Editar" variant="secondary" onPress={() => setEditing(true)} />
             </View>
           )}
@@ -301,10 +312,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   memberName: {
-    flex: 1,
     fontFamily: fonts.mono,
     fontSize: 14,
     color: colors.textPrimary,
+  },
+  memberTitle: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.secondary,
+    letterSpacing: 0.5,
   },
   adminBadge: {
     borderWidth: 1,

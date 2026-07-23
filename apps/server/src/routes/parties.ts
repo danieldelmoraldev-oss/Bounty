@@ -23,6 +23,7 @@ import { PointEvent } from "../models/PointEvent.ts";
 import { pickRandomTemplate } from "../data/challengeBank.ts";
 import { firstParam } from "../lib/params.ts";
 import { getUserPoints } from "../lib/points.ts";
+import { getPointMultiplier, hasActiveEffect } from "../lib/effects.ts";
 
 export const partiesRouter = Router();
 
@@ -242,6 +243,18 @@ partiesRouter.post(
       return;
     }
 
+    if (await hasActiveEffect(partyId, req.userId!, "camera_broken")) {
+      res.status(403).json({ error: "Tu cámara está rota (sabotaje): espera unos minutos" });
+      return;
+    }
+    if (
+      assignment.difficulty === 1 &&
+      (await hasActiveEffect(partyId, req.userId!, "level1_blocked"))
+    ) {
+      res.status(403).json({ error: "Te han bloqueado el nivel 1 (sabotaje): espera unos minutos" });
+      return;
+    }
+
     assignment.status = "submitted";
     assignment.photoUrl = photoUrl;
     assignment.submittedAt = new Date();
@@ -332,10 +345,11 @@ partiesRouter.post(
 
     if (approve) {
       const difficulty = assignment.difficulty as ChallengeDifficulty;
+      const multiplier = await getPointMultiplier(partyId, assignment.user.toString());
       await PointEvent.create({
         season: party.season,
         user: assignment.user,
-        amount: POINTS_BY_DIFFICULTY[difficulty],
+        amount: Math.round(POINTS_BY_DIFFICULTY[difficulty] * multiplier),
         reason: "challenge_completed",
       });
 

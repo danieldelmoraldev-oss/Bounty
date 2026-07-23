@@ -9,6 +9,7 @@ import { groupsRouter } from "./routes/groups.ts";
 import { seasonsRouter } from "./routes/seasons.ts";
 import { partiesRouter } from "./routes/parties.ts";
 import { albumRouter } from "./routes/album.ts";
+import { shopRouter } from "./routes/shop.ts";
 
 async function main() {
   const app = express();
@@ -23,6 +24,7 @@ async function main() {
   app.use(seasonsRouter);
   app.use(partiesRouter);
   app.use(albumRouter);
+  app.use(shopRouter);
 
   try {
     await connectDb();

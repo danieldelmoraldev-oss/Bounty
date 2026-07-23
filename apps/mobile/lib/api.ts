@@ -12,6 +12,7 @@ import type {
   ReviewQueueItem,
   Season,
   SeasonLeaderboard,
+  ShopState,
   UpdateProfileRequest,
   UserProfile,
 } from "@bounty/shared";
@@ -202,6 +203,33 @@ export function rateFreestyle(groupId: string, postId: string, stars: number): P
   return request<void>(`/groups/${groupId}/album/freestyle/${postId}/rate`, {
     method: "POST",
     body: { stars },
+    auth: true,
+  });
+}
+
+export function fetchShopState(groupId: string): Promise<ShopState> {
+  return request<ShopState>(`/groups/${groupId}/shop`, { auth: true });
+}
+
+export function purchaseItem(
+  groupId: string,
+  itemId: string,
+  targetUserId?: string,
+): Promise<ShopState> {
+  return request<ShopState>(`/groups/${groupId}/shop/purchase`, {
+    method: "POST",
+    body: { itemId, targetUserId },
+    auth: true,
+  });
+}
+
+export function equipCosmetic(
+  groupId: string,
+  patch: { frame?: string | null; title?: string | null },
+): Promise<ShopState> {
+  return request<ShopState>(`/groups/${groupId}/shop/equip`, {
+    method: "POST",
+    body: patch,
     auth: true,
   });
 }

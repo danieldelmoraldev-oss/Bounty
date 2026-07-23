@@ -37,6 +37,8 @@ export interface GroupMember {
   avatarColor: string;
   role: GroupRole;
   joinedAt: string;
+  equippedFrame: string | null;
+  equippedTitle: string | null;
 }
 
 export interface GroupDetail {
@@ -204,4 +206,118 @@ export interface AlbumFolder {
   endedAt: string | null;
   itemCount: number;
   coverUrl: string | null;
+}
+
+export type ShopItemKind =
+  | "point_buff"
+  | "camera_broken"
+  | "level1_blocked"
+  | "cosmetic_frame"
+  | "cosmetic_title";
+
+export interface ShopItem {
+  id: string;
+  kind: ShopItemKind;
+  name: string;
+  description: string;
+  cost: number;
+  requiresTarget?: boolean;
+  multiplier?: number;
+  durationMinutes?: number;
+  value?: string;
+}
+
+export const SHOP_CATALOG: ShopItem[] = [
+  {
+    id: "buff_x15",
+    kind: "point_buff",
+    name: "Buff x1.5",
+    description: "Multiplica x1.5 los puntos que ganes el resto de esta noche.",
+    cost: 5,
+    multiplier: 1.5,
+  },
+  {
+    id: "buff_x2",
+    kind: "point_buff",
+    name: "Buff x2",
+    description: "Multiplica x2 los puntos que ganes el resto de esta noche.",
+    cost: 10,
+    multiplier: 2,
+  },
+  {
+    id: "sabotage_camera",
+    kind: "camera_broken",
+    name: "Cámara Rota",
+    description: "Tu objetivo no puede enviar pruebas durante 15 minutos.",
+    cost: 6,
+    requiresTarget: true,
+    durationMinutes: 15,
+  },
+  {
+    id: "sabotage_block1",
+    kind: "level1_blocked",
+    name: "Bloqueo Nivel 1",
+    description: "Tu objetivo no puede enviar el reto de nivel 1 durante 15 minutos.",
+    cost: 4,
+    requiresTarget: true,
+    durationMinutes: 15,
+  },
+  {
+    id: "cosmetic_frame_gold",
+    kind: "cosmetic_frame",
+    name: "Marco Dorado",
+    description: "Un marco dorado para tu avatar, para siempre.",
+    cost: 8,
+    value: "#FFD65C",
+  },
+  {
+    id: "cosmetic_frame_purple",
+    kind: "cosmetic_frame",
+    name: "Marco Púrpura",
+    description: "Un marco morado para tu avatar, para siempre.",
+    cost: 8,
+    value: "#C86BFF",
+  },
+  {
+    id: "cosmetic_title_legend",
+    kind: "cosmetic_title",
+    name: "Título: Leyenda",
+    description: 'Muestra "Leyenda" junto a tu nombre en el grupo.',
+    cost: 10,
+    value: "Leyenda",
+  },
+  {
+    id: "cosmetic_title_menace",
+    kind: "cosmetic_title",
+    name: "Título: Amenaza",
+    description: 'Muestra "Amenaza" junto a tu nombre en el grupo.',
+    cost: 10,
+    value: "Amenaza",
+  },
+];
+
+export interface ActiveEffectView {
+  kind: ShopItemKind;
+  expiresAt: string | null;
+  multiplier?: number;
+}
+
+export interface ShopState {
+  balance: number;
+  hasActiveParty: boolean;
+  activeEffects: ActiveEffectView[];
+  ownedFrames: string[];
+  ownedTitles: string[];
+  equippedFrame: string | null;
+  equippedTitle: string | null;
+}
+
+export interface PurchaseRequest {
+  itemId: string;
+  targetUserId?: string;
+}
+
+export interface EquipCosmeticRequest {
+  frame?: string | null;
+  title?: string | null;
 }
